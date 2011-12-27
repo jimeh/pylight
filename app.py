@@ -1,15 +1,9 @@
+# import libraries
 import os
-
-# import flask
 from flask import *
 
-
-# import pygments
-from pygments import highlight
-from pygments.lexers import (get_lexer_by_name, get_lexer_for_filename,
-                             get_lexer_for_mimetype, guess_lexer_for_filename,
-                             guess_lexer)
-from pygments.formatters import get_formatter_by_name
+# import project relative modules
+from pylight import *
 
 # initialize flask
 app = Flask(__name__)
@@ -25,23 +19,11 @@ def api_root():
 
 @app.route('/api/highlight', methods=['POST'])
 def api_highlight():
-    if 'source' not in request.json:
-        return make_response(None, 422)
-
-    if 'lang' in request.json:
-        lexer = get_lexer_by_name(request.json['lang'])
-    elif 'mimetype' in request.json:
-        lexer = get_lexer_for_mimetype(request.json['mimetype'])
-    elif 'filename' in request.json:
-        lexer = guess_lexer_for_filename(request.json['filename'],
-                                         request.json['source'])
+    response = pylight(request.json)
+    if response:
+        return jsonify(response)
     else:
-        lexer = guess_lexer(request.json['source'])
-
-    formatter = get_formatter_by_name('html')
-    body = highlight(request.json['source'], lexer, formatter)
-
-    return jsonify({ "lexer": lexer.name, "body": body })
+        return make_response(None, 422)
 
 
 if __name__ == '__main__':
